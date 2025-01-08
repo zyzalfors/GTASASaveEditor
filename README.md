@@ -46,3 +46,11 @@ It allows to manipulate the following properties:
 - Bike skill
 - Cycling skill
 - Cheats used
+
+More technical details about saves can be found in the following sources:
+- https://gtamods.com/wiki/Saves_(GTA_SA)
+- https://gtasa-savegame-editor.github.io/docs
+
+Other similar repositories are:
+- https://github.com/gtasa-savegame-editor/gtasa-savegame-editor
+- https://github.com/Saketh-Chandra/GTA_SA_Save_Game_EditorPy
