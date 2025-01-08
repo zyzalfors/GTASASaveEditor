@@ -145,7 +145,7 @@ void MainForm::UpdateSave() {
         std::string val = text->toPlainText().toStdString();
         ok = this->Update(name, val);
         if(!ok) {
-            msg = "Error occured in updating " + name + ".";
+            msg = "Error occurred in updating " + name + ".";
             break;
         }
     }
