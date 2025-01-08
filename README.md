@@ -1,5 +1,6 @@
 # GTA SA Save Editor (PS2)
 This GUI tool (QT6 with C++) allows to read and edit saves of PlayStation 2 game Grand Theft Auto San Andreas. It is partially compatible with saves of the PC version of the game.
+
 It allows to manipulate the following properties:
 - Cheated
 - Riot
@@ -41,7 +42,7 @@ It allows to manipulate the following properties:
 - Gambling skill
 - Driving skill
 - Flying skill
-- Lung capacit
+- Lung capacity
 - Bike skill
 - Cycling skill
 - Cheats used
