@@ -1,7 +1,7 @@
 # GTA SA Save Editor (PS2)
-This GUI tool (QT6 with C++) allows to read and edit saves of PlayStation 2 game Grand Theft Auto San Andreas. It is partially compatible with saves of the PC version of the game.
+This GUI tool, built with QT6 and C++, allows users to read and edit save files from the PlayStation 2 version of Grand Theft Auto: San Andreas. It also offers partial compatibility with saves from the PC version of the game.
 
-It allows to manipulate the following properties:
+The tool supports manipulation of the following properties:
 - Cheated
 - Riot
 - Uncensored
@@ -47,10 +47,10 @@ It allows to manipulate the following properties:
 - Cycling skill
 - Cheats used
 
-More technical details about saves can be found in the following sources:
+For more technical details about save files, you can refer to the following resources:
 - https://gtamods.com/wiki/Saves_(GTA_SA)
 - https://gtasa-savegame-editor.github.io/docs
 
-Other similar repositories are:
+Similar projects can be found in these repositories:
 - https://github.com/gtasa-savegame-editor/gtasa-savegame-editor
 - https://github.com/Saketh-Chandra/GTA_SA_Save_Game_EditorPy
