@@ -13,12 +13,12 @@ class GTASASave {
     public: void Update(std::string& _name, std::string& _val);
     public: void UpdateChecksum();
     public: void Write();
-    public: void GetInfos(std::map<std::string, bool>& _bools, std::map<std::string, uint8_t>& _bytes, std::map<std::string, uint32_t>& _ints, std::map<std::string, float>& _floats);
-    private: std::unique_ptr<uint8_t[]> bytes;
-    private: size_t size = 0;
-    private: std::vector<size_t> blockOffsets;
+    public: void GetInfos(std::map<std::string, bool>& _bools, std::map<std::string, std::uint8_t>& _bytes, std::map<std::string, std::uint32_t>& _ints, std::map<std::string, float>& _floats);
+    private: std::unique_ptr<std::uint8_t[]> bytes;
+    private: std::size_t size = 0;
+    private: std::vector<std::size_t> blockOffsets;
     private: std::string path;
-    private: std::map<std::string, std::tuple<Type, size_t, size_t>> infos = {
+    private: std::map<std::string, std::tuple<Type, std::size_t, std::size_t>> infos = {
             {"Cheated", std::make_tuple(boolean, 0, 0x90)},
             {"Riot", std::make_tuple(boolean, 0, 0xE0)},
             {"Uncensored", std::make_tuple(boolean, 0, 0xEE)},
@@ -65,7 +65,8 @@ class GTASASave {
             {"Cheats used", std::make_tuple(integer, 16, 0x18C)}
     };
     private: void ReadBlockOffsets();
-    private: static void GetLEBytes(uint8_t _buff[], uint32_t _val);
-    private: static uint32_t GetInt(uint8_t _buff[], size_t _offset);
+    private: static void GetLEBytes(std::uint8_t _buff[], std::uint32_t _val);
+    private: static std::uint32_t GetInt(std::uint8_t _buff[], std::size_t _offset);
 };
 #endif
+
