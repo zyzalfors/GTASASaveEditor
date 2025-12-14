@@ -29,8 +29,8 @@ void MainForm::PrintSaveInfos() {
     }
 
     std::map<std::string, bool> _bools;
-    std::map<std::string, uint8_t> _bytes;
-    std::map<std::string, uint32_t> _ints;
+    std::map<std::string, std::uint8_t> _bytes;
+    std::map<std::string, std::uint32_t> _ints;
     std::map<std::string, float> _floats;
     this->save->GetInfos(_bools, _bytes, _ints, _floats);
 
@@ -161,3 +161,4 @@ void MainForm::UpdateSave() {
     msgBox.setText(QString::fromUtf8(msg.c_str()));
     msgBox.exec();
 }
+
