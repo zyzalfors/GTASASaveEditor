@@ -2,50 +2,50 @@
 This GUI tool, built with QT6 and C++, allows users to read and edit save files for the PlayStation 2 game Grand Theft Auto: San Andreas. It also offers partial compatibility with saves of the PC version of the game.
 
 The tool supports manipulation of the following properties:
-- Cheated
-- Riot
-- Uncensored
-- Taxi nitro
-- Prostitutes pay
-- Free bomb
-- Free respray
-- Respray disabled
-- Lose stuff on wasted
-- Lose stuff on busted
-- Infinite sprint
-- Fast reload
-- Fireproof
-- Drive-by
-- Version
-- Health
-- Max health
-- Armor
-- Max armor
-- Money
-- Money on screen
-- Fat
-- Stamina
-- Muscle
-- Respect
-- Sex appeal
-- Luck
-- Pistol skill
-- Silenced pistol skill
-- Desert Eagle skill
-- Shotgun skill
-- Sawn-off shotgun skill
-- Combat shotgun skill
-- Machine pistol skill
-- SMG skill
-- AK47 skill
-- M4 skill
-- Gambling skill
-- Driving skill
-- Flying skill
-- Lung capacity
-- Bike skill
-- Cycling skill
-- Cheats used
+- Cheated - Boolean
+- Riot - Boolean
+- Uncensored - Boolean
+- Taxi nitro - Boolean
+- Prostitutes pay - Boolean
+- Free bomb - Boolean
+- Free respray - Boolean
+- Respray disabled - Boolean
+- Lose stuff on wasted - Boolean
+- Lose stuff on busted - Boolean
+- Infinite sprint - Boolean
+- Fast reload - Boolean
+- Fireproof - Boolean
+- Drive-by - Boolean
+- Version - Integer
+- Health - Decimal, enter "inf" to set this value to infinite 
+- Max health - Decimal
+- Armor - Decimal, enter "inf" to set this value to infinite 
+- Max armor - Byte
+- Money - Integer
+- Money on screen - Integer
+- Fat - Decimal
+- Stamina - Decimal
+- Muscle - Decimal
+- Respect - Decimal
+- Sex appeal - Decimal
+- Luck - Integer
+- Pistol skill - Decimal
+- Silenced pistol skill - Decimal
+- Desert Eagle skill - Decimal
+- Shotgun skill - Decimal
+- Sawn-off shotgun skill - Decimal
+- Combat shotgun skill - Decimal
+- Machine pistol skill - Decimal
+- SMG skill - Decimal
+- AK47 skill - Decimal
+- M4 skill - Decimal
+- Gambling skill - Decimal
+- Driving skill - Integer
+- Flying skill - Integer
+- Lung capacity - Integer
+- Bike skill - Integer
+- Cycling skill - Integer
+- Cheats used - Integer
 
 For more technical details about save files, you can refer to the following resources:
 - https://gtamods.com/wiki/Saves_(GTA_SA)
