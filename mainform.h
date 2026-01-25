@@ -17,7 +17,7 @@ class MainForm : public QMainWindow {
     public: ~MainForm();
     private slots: void OpenSave();    
     private slots: void UpdateSave();
-    private: bool Update(std::string& _name, std::string& _val);
+    private: bool Update(const std::string& name, const std::string& val);
     private: Ui::MainForm* ui;
     private: void AddSignalSlots();
     private: void PrintSaveInfos();

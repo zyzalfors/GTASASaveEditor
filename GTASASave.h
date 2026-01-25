@@ -9,13 +9,14 @@
 
 class GTASASave {
     public: enum Type {boolean, byte, integer, decimal};
-    public: GTASASave(std::string& _path);
-    public: void Update(std::string& _name, std::string& _val);
+    public: GTASASave(const std::string& path);
+    public: void Update(const std::string& name, const std::string& val);
     public: void UpdateChecksum();
+    public: bool CheckChecksum();
     public: void Write();
-    public: void GetInfos(std::map<std::string, bool>& _bools, std::map<std::string, std::uint8_t>& _bytes, std::map<std::string, std::uint32_t>& _ints, std::map<std::string, float>& _floats);
+    public: void GetInfos(std::map<std::string, bool>& bools, std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints, std::map<std::string, float>& floats);
     private: std::unique_ptr<std::uint8_t[]> bytes;
-    private: std::size_t size = 0;
+    private: std::size_t size;
     private: std::vector<std::size_t> blockOffsets;
     private: std::string path;
     private: std::map<std::string, std::tuple<Type, std::size_t, std::size_t>> infos = {
@@ -65,8 +66,7 @@ class GTASASave {
             {"Cheats used", std::make_tuple(integer, 16, 0x18C)}
     };
     private: void ReadBlockOffsets();
-    private: static void GetLEBytes(std::uint8_t _buff[], std::uint32_t _val);
-    private: static std::uint32_t GetInt(std::uint8_t _buff[], std::size_t _offset);
+    private: static void GetLEBytes(std::uint8_t buff[], const std::uint32_t& val);
+    private: static std::uint32_t GetInt(const std::uint8_t buffer[], const std::size_t& offset);
 };
 #endif
-

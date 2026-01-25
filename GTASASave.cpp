@@ -2,8 +2,8 @@
 #include <cstring>
 #include <fstream>
 
-GTASASave::GTASASave(std::string& _path) {
-    this->path = _path;
+GTASASave::GTASASave(const std::string& path) {
+    this->path = path;
 
     std::ifstream in(path, std::ios::in | std::ios::binary);
     in.seekg(0, std::ios::end);
@@ -17,42 +17,45 @@ GTASASave::GTASASave(std::string& _path) {
     this->ReadBlockOffsets();
 }
 
-void GTASASave::Update(std::string& _name, std::string& _val) {
-    if(this->infos.count(_name) == 0) return;
-    auto info = this->infos[_name];
-    auto type = std::get<0>(info);
+void GTASASave::Update(const std::string& name, const std::string& val) {
+    if(this->infos.count(name) == 0) return;
 
-    std::size_t offset = this->blockOffsets[std::get<1>(info)] + std::get<2>(info);
+    const auto info = this->infos[name];
+    const Type type = std::get<0>(info);
+    const std::size_t offset = this->blockOffsets[std::get<1>(info)] + std::get<2>(info);
+
     std::uint8_t* buffer = this->bytes.get();
-    std::uint8_t intBytes[4];
+    std::uint8_t bytes[4];
     std::size_t n = 0;
 
     switch(type) {
-        case boolean: {
-                n = 1;
-                intBytes[0] = std::stoul(_val) > 0;
-            }
+        case boolean:
+            n = 1;
+            bytes[0] = std::stoul(val) > 0;
             break;
-        case byte: {
-                n = 1;
-                intBytes[0] = std::stoul(_val);
-            }
+
+        case byte:
+            n = 1;
+            bytes[0] = std::stoul(val);
             break;
-        case integer: {
-                n = 4;
-                GetLEBytes(intBytes, std::stoul(_val));
-            }
+
+        case integer:
+            n = 4;
+            GetLEBytes(bytes, std::stoul(val));
             break;
+
         case decimal: {
                 n = 4;
-                std::uint32_t val = 0;
-                float floatVal = std::stof(_val);
-                std::memcpy(&val, &floatVal, sizeof(float));
-                GetLEBytes(intBytes, val);
+                const float floatVal = std::stof(val);
+                std::uint32_t intVal = 0;
+                std::memcpy(&intVal, &floatVal, 4);
+                GetLEBytes(bytes, intVal);
             }
             break;
     }
-    for(std::size_t i = 0; i < n && i < this->size; i++) buffer[offset + i] = intBytes[i];
+
+    for(std::size_t i = 0; i < n && i < this->size; i++)
+        buffer[offset + i] = bytes[i];
 }
 
 void GTASASave::UpdateChecksum() {
@@ -60,12 +63,27 @@ void GTASASave::UpdateChecksum() {
 
     std::uint8_t* buffer = this->bytes.get();
     std::uint32_t checksum = 0;
-    for(std::size_t i = 0; i < this->size - 4; i++) checksum += buffer[i];
 
-    std::uint8_t checkBytes[4];
-    GetLEBytes(checkBytes, checksum);
+    for(std::size_t i = 0; i < this->size - 4; i++)
+        checksum += buffer[i];
 
-    for(std::size_t i = 0; i < 4; i++) buffer[this->size - 4 + i] = checkBytes[i];
+    std::uint8_t bytes[4];
+    GetLEBytes(bytes, checksum);
+
+    for(std::size_t i = 0; i < 4; i++)
+        buffer[this->size - 4 + i] = bytes[i];
+}
+
+bool GTASASave::CheckChecksum() {
+    if(this->size < 4) return false;
+
+    const std::uint8_t* buffer = this->bytes.get();
+    std::uint32_t checksum = 0;
+
+    for(std::size_t i = 0; i < this->size - 4; i++)
+        checksum += buffer[i];
+
+    return checksum == GetInt(buffer, this->size - 4);
 }
 
 void GTASASave::Write() {
@@ -74,55 +92,59 @@ void GTASASave::Write() {
     out.close();
 }
 
-void GTASASave::GetInfos(std::map<std::string, bool>& _bools, std::map<std::string, std::uint8_t>& _bytes,
-                         std::map<std::string, std::uint32_t>& _ints, std::map<std::string, float>& _floats) {
-    bool boolVal = 0;
-    std::uint32_t intVal = 0;
-    float floatVal = 0;
-    std::uint8_t* buffer = this->bytes.get();
+void GTASASave::GetInfos(std::map<std::string, bool>& bools, std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints, std::map<std::string, float>& floats) {
+    const std::uint8_t* buffer = this->bytes.get();
 
-    for(auto& info : this->infos) {
-        auto infoVal = info.second;
-        auto type = std::get<0>(infoVal);
-        std::string name = info.first;
-        std::size_t offset = this->blockOffsets[std::get<1>(infoVal)] + std::get<2>(infoVal);
+    for(const auto& info : this->infos) {
+        const std::string name = info.first;
+        const auto val = info.second;
+        const Type type = std::get<0>(val);
+        const std::size_t offset = this->blockOffsets[std::get<1>(val)] + std::get<2>(val);
 
         switch(type) {
             case boolean:
-                boolVal = buffer[offset] > 0;
-                _bools.insert({name, boolVal});
+                bools.insert({name, buffer[offset] > 0});
                 break;
+
             case byte:
-                intVal = buffer[offset];
-                _bytes.insert({name, intVal});
+                bytes.insert({name, buffer[offset]});
                 break;
+
             case integer:
-                intVal = GetInt(buffer, offset);
-                _ints.insert({name, intVal});
+                ints.insert({name, GetInt(buffer, offset)});
                 break;
-            case decimal:
-                intVal = GetInt(buffer, offset);
-                floatVal = *((float*) &intVal);
-                _floats.insert({name, floatVal});
+
+            case decimal: {
+                    const std::uint32_t intVal = GetInt(buffer, offset);
+                    float floatVal = 0;
+                    std::memcpy(&floatVal, &intVal, 4);
+                    floats.insert({name, floatVal});
+                }
                 break;
         }
     }
 }
 
 void GTASASave::ReadBlockOffsets() {
-    std::uint8_t patt[5] = {'B', 'L', 'O', 'C', 'K'};
+    const std::uint8_t patt[5] = {'B', 'L', 'O', 'C', 'K'};
     std::uint8_t pi[6] = {0, 0, 0, 0, 0, 0};
 
     for(std::uint8_t i = 1, m = 0; i <= 5; i++) {
-        while(m > 0 && patt[m] != patt[i]) m = pi[m - 1];
+        while(m > 0 && patt[m] != patt[i])
+            m = pi[m - 1];
+
         if(patt[m] == patt[i]) m++;
         pi[i] = m;
     }
 
-    std::uint8_t* buffer = this->bytes.get();
+    const std::uint8_t* buffer = this->bytes.get();
+
     for(std::size_t i = 0, m = 0; i < this->size; i++) {
-        while(m > 0 && patt[m] != buffer[i]) m = pi[m - 1];
+        while(m > 0 && patt[m] != buffer[i])
+            m = pi[m - 1];
+
         if(patt[m] == buffer[i]) m++;
+
         if(m == 5) {
             this->blockOffsets.push_back(i + 1);
             m = pi[m - 1];
@@ -130,14 +152,13 @@ void GTASASave::ReadBlockOffsets() {
     }
 }
 
-void GTASASave::GetLEBytes(std::uint8_t _buff[], std::uint32_t _val) {
-    _buff[0] = _val & 0xFF;
-    _buff[1] = (_val & 0xFF00) >> 8;
-    _buff[2] = (_val & 0xFF0000) >> 16;
-    _buff[3] = (_val & 0xFF000000) >> 24;
+void GTASASave::GetLEBytes(std::uint8_t buffer[], const std::uint32_t& val) {
+    buffer[0] = val & 0xFF;
+    buffer[1] = (val & 0xFF00) >> 8;
+    buffer[2] = (val & 0xFF0000) >> 16;
+    buffer[3] = (val & 0xFF000000) >> 24;
 }
 
-std::uint32_t GTASASave::GetInt(std::uint8_t _buff[], std::size_t _offset) {
-    return (_buff[_offset + 3] << 24) | (_buff[_offset + 2] << 16) | (_buff[_offset + 1] << 8) | _buff[_offset];
+std::uint32_t GTASASave::GetInt(const std::uint8_t buffer[], const std::size_t& offset) {
+    return (buffer[offset + 3] << 24) | (buffer[offset + 2] << 16) | (buffer[offset + 1] << 8) | buffer[offset];
 }
-
