@@ -113,7 +113,7 @@ void MainForm::OpenSave() {
 
     try {
         this->save = new GTASASave(path);
-        if(!this->save->CheckChecksum()) throw std::runtime_error("Invalid checksum.");
+        if(!this->save->CheckChecksum()) throw std::runtime_error("Invalid save checksum.");
     }
     catch(const std::runtime_error& e) {
         QMessageBox msgBox;
