@@ -101,7 +101,7 @@ void MainForm::GetWidgets(QCheckBox* checks[], QPlainTextEdit* texts[]) {
     texts[26] = this->ui->text27;
     texts[27] = this->ui->text28;
     texts[28] = this->ui->text29;
-    texts[29] = this->ui->text30;    
+    texts[29] = this->ui->text30;
 }
 
 void MainForm::OpenSave() {
