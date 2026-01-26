@@ -7,12 +7,18 @@ GTASASave::GTASASave(const std::string& path) {
 
     std::ifstream in(path, std::ios::in | std::ios::binary);
     in.seekg(0, std::ios::end);
-    this->size = in.tellg();
+    const std::size_t s = in.tellg();
     in.seekg(0, std::ios::beg);
 
-    this->bytes = std::unique_ptr<std::uint8_t[]>(new std::uint8_t[this->size]);
-    in.read((char*) this->bytes.get(), this->size);
-    in.close();
+    if(s == size) {
+        this->bytes = std::unique_ptr<std::uint8_t[]>(new std::uint8_t[size]);
+        in.read((char*) this->bytes.get(), size);
+        in.close();
+    }
+    else {
+        in.close();
+        throw std::runtime_error("Invalid save size.");
+    }
 
     this->ReadBlockOffsets();
 }
@@ -83,7 +89,8 @@ bool GTASASave::CheckChecksum() {
     for(std::size_t i = 0; i < this->size - 4; i++)
         checksum += buffer[i];
 
-    return checksum == GetInt(buffer, this->size - 4);
+    const std::uint32_t calcChecksum = GetInt(buffer, this->size - 4);
+    return checksum == calcChecksum;
 }
 
 void GTASASave::Write() {
@@ -92,7 +99,8 @@ void GTASASave::Write() {
     out.close();
 }
 
-void GTASASave::GetInfos(std::map<std::string, bool>& bools, std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints, std::map<std::string, float>& floats) {
+void GTASASave::GetInfos(std::string& path, std::map<std::string, bool>& bools, std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints, std::map<std::string, float>& floats) {
+    path = this->path;
     const std::uint8_t* buffer = this->bytes.get();
 
     for(const auto& info : this->infos) {

@@ -14,9 +14,9 @@ class GTASASave {
     public: void UpdateChecksum();
     public: bool CheckChecksum();
     public: void Write();
-    public: void GetInfos(std::map<std::string, bool>& bools, std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints, std::map<std::string, float>& floats);
+    public: void GetInfos(std::string& path, std::map<std::string, bool>& bools, std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints, std::map<std::string, float>& floats);
     private: std::unique_ptr<std::uint8_t[]> bytes;
-    private: std::size_t size;
+    private: static const std::size_t size = 202752;
     private: std::vector<std::size_t> blockOffsets;
     private: std::string path;
     private: std::map<std::string, std::tuple<Type, std::size_t, std::size_t>> infos = {

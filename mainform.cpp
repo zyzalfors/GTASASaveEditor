@@ -20,22 +20,15 @@ void MainForm::AddSignalSlots() {
 }
 
 void MainForm::PrintSaveInfos() {
-    if(this->save == nullptr) {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.setText("Unable to open save.");
-        msgBox.exec();
-        return;
-    }
-
+    std::string path;
     std::map<std::string, bool> bools;
     std::map<std::string, std::uint8_t> bytes;
     std::map<std::string, std::uint32_t> ints;
     std::map<std::string, float> floats;
-    this->save->GetInfos(bools, bytes, ints, floats);
+    this->save->GetInfos(path, bools, bytes, ints, floats);
 
     QCheckBox* checks[14];
-    QPlainTextEdit* texts[30];
+    QPlainTextEdit* texts[31];
     this->GetWidgets(checks, texts);
 
     for(QCheckBox* check : checks) {
@@ -43,7 +36,12 @@ void MainForm::PrintSaveInfos() {
         check->setChecked(bools[check->text().toStdString()]);
     }
 
-    for(QPlainTextEdit* text : texts) {
+    const QString title = texts[30]->documentTitle();
+    texts[30]->setPlainText(QString::fromStdString(path));
+    texts[30]->setDocumentTitle(title);
+
+    for(std::size_t i = 0; i < 30; i++) {
+        QPlainTextEdit* text = texts[i];
         text->setEnabled(true);
 
         const QString title = text->documentTitle();
@@ -73,6 +71,7 @@ void MainForm::GetWidgets(QCheckBox* checks[], QPlainTextEdit* texts[]) {
     checks[12] = this->ui->check13;
     checks[13] = this->ui->check14;
 
+    texts[30] = this->ui->text0;
     texts[0] = this->ui->text1;
     texts[1] = this->ui->text2;
     texts[2] = this->ui->text3;
@@ -102,24 +101,28 @@ void MainForm::GetWidgets(QCheckBox* checks[], QPlainTextEdit* texts[]) {
     texts[26] = this->ui->text27;
     texts[27] = this->ui->text28;
     texts[28] = this->ui->text29;
-    texts[29] = this->ui->text30;
+    texts[29] = this->ui->text30;    
 }
 
 void MainForm::OpenSave() {
-    QString _path = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open Save"), "/home/user", QObject::tr("GTASA Save (*.b)"));
-    if(_path.isEmpty()) return;
-    std::string path = _path.toStdString();
+    QString p = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open Save"), "/home/user", QObject::tr("GTASA Save (*.b);;All Files (*)"));
+    if(p.isEmpty()) return;
+    std::string path = p.toStdString();
 
     if(this->save != nullptr) delete this->save;
-    this->save = new GTASASave(path);
 
-    if(!this->save->CheckChecksum()) {
+    try {
+        this->save = new GTASASave(path);
+        if(!this->save->CheckChecksum()) throw std::runtime_error("Invalid checksum.");
+    }
+    catch(const std::runtime_error& e) {
         QMessageBox msgBox;
         msgBox.setIcon(QMessageBox::Critical);
-        msgBox.setText("Invalid checksum.");
+        msgBox.setText(e.what());
         msgBox.exec();
     }
 
+    if(this->save == nullptr) return;
     this->PrintSaveInfos();
     this->ui->Update->setEnabled(true);
 }
@@ -139,19 +142,20 @@ void MainForm::UpdateSave() {
     if(this->save == nullptr) return;
 
     QCheckBox* checks[14];
-    QPlainTextEdit* texts[30];
+    QPlainTextEdit* texts[31];
     this->GetWidgets(checks, texts);
 
     for(QCheckBox* check : checks) {
         const std::string name = check->text().toStdString();
-        const std::string checked = check->isChecked() ? "1" : "0";
-        this->Update(name, checked);
+        const std::string val = check->isChecked() ? "1" : "0";
+        this->Update(name, val);
     }
 
     std::string msg = "Save updated.";
     bool ok = false;
 
-    for(QPlainTextEdit* text : texts) {
+    for(std::size_t i = 0; i < 30; i++) {
+        const QPlainTextEdit* text = texts[i];
         const std::string name = text->documentTitle().toStdString();
         const std::string val = text->toPlainText().toStdString();
 
