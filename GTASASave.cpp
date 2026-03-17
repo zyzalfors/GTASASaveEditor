@@ -135,9 +135,9 @@ void GTASASave::GetInfos(std::string& path, std::map<std::string, bool>& bools, 
 
 void GTASASave::ReadBlockOffsets() {
     const std::uint8_t patt[5] = {'B', 'L', 'O', 'C', 'K'};
-    std::uint8_t pi[6] = {0, 0, 0, 0, 0, 0};
+    std::uint8_t pi[6] = {0, 0, 0, 0, 0};
 
-    for(std::uint8_t i = 1, m = 0; i <= 5; i++) {
+    for(std::uint8_t i = 1, m = 0; i < 5; i++) {
         while(m > 0 && patt[m] != patt[i])
             m = pi[m - 1];
 
