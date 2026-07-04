@@ -9,6 +9,34 @@ MainForm::MainForm(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainForm) 
     this->AddSignalSlots();
 }
 
+void MainForm::InitCombos() {
+    QWidget* tab = ui->tabs->widget(1);
+
+    for(QComboBox* combo : tab->findChildren<QComboBox*>()) {
+        int i = 0;
+
+        if(combo->objectName() == "combo0") i = 0;
+        else if(combo->objectName() == "combo1") i = 1;
+        else if(combo->objectName() == "combo2") i = 2;
+        else if(combo->objectName() == "combo3") i = 3;
+        else if(combo->objectName() == "combo4") i = 4;
+        else if(combo->objectName() == "combo5") i = 5;
+        else if(combo->objectName() == "combo6") i = 6;
+        else if(combo->objectName() == "combo7") i = 7;
+        else if(combo->objectName() == "combo8") i = 8;
+        else if(combo->objectName() == "combo9") i = 9;
+        else if(combo->objectName() == "combo10") i = 10;
+        else if(combo->objectName() == "combo11") i = 11;
+        else if(combo->objectName() == "combo12") i = 12;
+
+        combo->clear();
+        for(const auto& entry : this->save->weapons[i]) {
+            combo->addItem(QString::fromStdString(entry.first));
+            combo->setEnabled(true);
+        }
+    }
+}
+
 MainForm::~MainForm() {
     delete this->ui;
     if(this->save != nullptr) delete this->save;
@@ -24,23 +52,25 @@ void MainForm::PrintSaveInfos() {
     std::map<std::string, bool> bools;
     std::map<std::string, std::uint8_t> bytes;
     std::map<std::string, std::uint32_t> ints;
-    std::map<std::string, float> floats;
-    this->save->GetInfos(path, bools, bytes, ints, floats);
+    std::map<std::string, float> decs;
+    std::array<std::pair<std::string, std::uint32_t>, this->save->weaponSlots> weaps;
+    this->save->GetInfos(path, bools, bytes, ints, decs, weaps);
 
-    QCheckBox* checks[14];
-    QPlainTextEdit* texts[31];
-    this->GetWidgets(checks, texts);
+    QCheckBox* checks[16];
+    QPlainTextEdit* texts[39];
+    QComboBox* combos[13];
+    this->GetWidgets(checks, texts, combos);
 
     for(QCheckBox* check : checks) {
         check->setEnabled(true);
         check->setChecked(bools[check->text().toStdString()]);
     }
 
-    const QString title = texts[30]->documentTitle();
-    texts[30]->setPlainText(QString::fromStdString(path));
-    texts[30]->setDocumentTitle(title);
+    const QString title = texts[0]->documentTitle();
+    texts[0]->setPlainText(QString::fromStdString(path));
+    texts[0]->setDocumentTitle(title);
 
-    for(std::size_t i = 0; i < 30; i++) {
+    for(std::size_t i = 1; i < 31; i++) {
         QPlainTextEdit* text = texts[i];
         text->setEnabled(true);
 
@@ -49,59 +79,121 @@ void MainForm::PrintSaveInfos() {
 
         if(bytes.count(name) > 0) text->setPlainText(QString::number(bytes[name]));
         else if(ints.count(name) > 0) text->setPlainText(QString::number(ints[name]));
-        else if(floats.count(name) > 0) text->setPlainText(QString::number(floats[name]));
+        else if(decs.count(name) > 0) text->setPlainText(QString::number(decs[name]));
 
+        text->setDocumentTitle(title);
+    }
+
+    for(QComboBox* combo : combos) {
+        if(combo->objectName() == "combo0") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[0].first)));
+        else if(combo->objectName() == "combo1") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[1].first)));
+        else if(combo->objectName() == "combo2") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[2].first)));
+        else if(combo->objectName() == "combo3") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[3].first)));
+        else if(combo->objectName() == "combo4") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[4].first)));
+        else if(combo->objectName() == "combo5") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[5].first)));
+        else if(combo->objectName() == "combo6") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[6].first)));
+        else if(combo->objectName() == "combo7") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[7].first)));
+        else if(combo->objectName() == "combo8") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[8].first)));
+        else if(combo->objectName() == "combo9") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[9].first)));
+        else if(combo->objectName() == "combo10") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[10].first)));
+        else if(combo->objectName() == "combo11") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[11].first)));
+        else if(combo->objectName() == "combo12") combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[12].first)));
+    }
+
+    for(std::size_t i = 31; i < 39; i++) {
+        QPlainTextEdit* text = texts[i];
+        text->setEnabled(true);
+
+        const QString title = text->documentTitle();
+        text->setPlainText(QString::number(weaps[i - 31 + 2].second));
         text->setDocumentTitle(title);
     }
 }
 
-void MainForm::GetWidgets(QCheckBox* checks[], QPlainTextEdit* texts[]) {
-    checks[0] = this->ui->check1;
-    checks[1] = this->ui->check2;
-    checks[2] = this->ui->check3;
-    checks[3] = this->ui->check4;
-    checks[4] = this->ui->check5;
-    checks[5] = this->ui->check6;
-    checks[6] = this->ui->check7;
-    checks[7] = this->ui->check8;
-    checks[8] = this->ui->check9;
-    checks[9] = this->ui->check10;
-    checks[10] = this->ui->check11;
-    checks[11] = this->ui->check12;
-    checks[12] = this->ui->check13;
-    checks[13] = this->ui->check14;
+void MainForm::GetWidgets(QCheckBox* checks[], QPlainTextEdit* texts[], QComboBox* combos[]) {
+    QWidget* tab1 = ui->tabs->widget(0);
 
-    texts[30] = this->ui->text0;
-    texts[0] = this->ui->text1;
-    texts[1] = this->ui->text2;
-    texts[2] = this->ui->text3;
-    texts[3] = this->ui->text4;
-    texts[4] = this->ui->text5;
-    texts[5] = this->ui->text6;
-    texts[6] = this->ui->text7;
-    texts[7] = this->ui->text8;
-    texts[8] = this->ui->text9;
-    texts[9] = this->ui->text10;
-    texts[10] = this->ui->text11;
-    texts[11] = this->ui->text12;
-    texts[12] = this->ui->text13;
-    texts[13] = this->ui->text14;
-    texts[14] = this->ui->text15;
-    texts[15] = this->ui->text16;
-    texts[16] = this->ui->text17;
-    texts[17] = this->ui->text18;
-    texts[18] = this->ui->text19;
-    texts[19] = this->ui->text20;
-    texts[20] = this->ui->text21;
-    texts[21] = this->ui->text22;
-    texts[22] = this->ui->text23;
-    texts[23] = this->ui->text24;
-    texts[24] = this->ui->text25;
-    texts[25] = this->ui->text26;
-    texts[26] = this->ui->text27;
-    texts[27] = this->ui->text28;
-    texts[28] = this->ui->text29;
-    texts[29] = this->ui->text30;
+    for(QCheckBox* check : tab1->findChildren<QCheckBox*>()) {
+        if(check->text() == "Cheated") checks[0] = check;
+        else if(check->text() == "Riot") checks[1] = check;
+        else if(check->text() == "Uncensored") checks[2] = check;
+        else if(check->text() == "Taxi nitro") checks[3] = check;
+        else if(check->text() == "Prostitutes pay") checks[4] = check;
+        else if(check->text() == "Free bomb") checks[5] = check;
+        else if(check->text() == "Free respray") checks[6] = check;
+        else if(check->text() == "Respray disabled") checks[7] = check;
+        else if(check->text() == "Lose stuff on wasted") checks[8] = check;
+        else if(check->text() == "Lose stuff on busted") checks[9] = check;
+        else if(check->text() == "Infinite sprint") checks[10] = check;
+        else if(check->text() == "Fast reload") checks[11] = check;
+        else if(check->text() == "Fireproof") checks[12] = check;
+        else if(check->text() == "Drive-by") checks[13] = check;
+        else if(check->text() == "Roadblocked SF") checks[14] = check;
+        else if(check->text() == "Roadblocked LV") checks[15] = check;
+    }
+
+    for(QPlainTextEdit* text : tab1->findChildren<QPlainTextEdit*>()) {
+        if(text->documentTitle() == "Path") texts[0] = text;
+        else if(text->documentTitle() == "Version") texts[1] = text;
+        else if(text->documentTitle() == "Health") texts[2] = text;
+        else if(text->documentTitle() == "Max health") texts[3] = text;
+        else if(text->documentTitle() == "Armor") texts[4] = text;
+        else if(text->documentTitle() == "Max armor") texts[5] = text;
+        else if(text->documentTitle() == "Money") texts[6] = text;
+        else if(text->documentTitle() == "Money on screen") texts[7] = text;
+        else if(text->documentTitle() == "Fat") texts[8] = text;
+        else if(text->documentTitle() == "Stamina") texts[9] = text;
+        else if(text->documentTitle() == "Muscle") texts[10] = text;
+        else if(text->documentTitle() == "Respect") texts[11] = text;
+        else if(text->documentTitle() == "Sex appeal") texts[12] = text;
+        else if(text->documentTitle() == "Luck") texts[13] = text;
+        else if(text->documentTitle() == "Pistol skill") texts[14] = text;
+        else if(text->documentTitle() == "Silenced pistol skill") texts[15] = text;
+        else if(text->documentTitle() == "Desert Eagle skill") texts[16] = text;
+        else if(text->documentTitle() == "Shotgun skill") texts[17] = text;
+        else if(text->documentTitle() == "Sawn-off shotgun skill") texts[18] = text;
+        else if(text->documentTitle() == "Combat shotgun skill") texts[19] = text;
+        else if(text->documentTitle() == "Machine pistol skill") texts[20] = text;
+        else if(text->documentTitle() == "SMG skill") texts[21] = text;
+        else if(text->documentTitle() == "AK47 skill") texts[22] = text;
+        else if(text->documentTitle() == "M4 skill") texts[23] = text;
+        else if(text->documentTitle() == "Gambling skill") texts[24] = text;
+        else if(text->documentTitle() == "Driving skill") texts[25] = text;
+        else if(text->documentTitle() == "Flying skill") texts[26] = text;
+        else if(text->documentTitle() == "Lung capacity") texts[27] = text;
+        else if(text->documentTitle() == "Bike skill") texts[28] = text;
+        else if(text->documentTitle() == "Cycling skill") texts[29] = text;
+        else if(text->documentTitle() == "Cheats used") texts[30] = text;
+    }
+
+    QWidget* tab2 = ui->tabs->widget(1);
+
+    for(QComboBox* combo : tab2->findChildren<QComboBox*>()) {
+        if(combo->objectName() == "combo0") combos[0] = combo;
+        else if(combo->objectName() == "combo1") combos[1] = combo;
+        else if(combo->objectName() == "combo2") combos[2] = combo;
+        else if(combo->objectName() == "combo3") combos[3] = combo;
+        else if(combo->objectName() == "combo4") combos[4] = combo;
+        else if(combo->objectName() == "combo5") combos[5] = combo;
+        else if(combo->objectName() == "combo6") combos[6] = combo;
+        else if(combo->objectName() == "combo7") combos[7] = combo;
+        else if(combo->objectName() == "combo8") combos[8] = combo;
+        else if(combo->objectName() == "combo9") combos[9] = combo;
+        else if(combo->objectName() == "combo10") combos[10] = combo;
+        else if(combo->objectName() == "combo11") combos[11] = combo;
+        else if(combo->objectName() == "combo12") combos[12] = combo;
+    }
+
+    for(QPlainTextEdit* text : tab2->findChildren<QPlainTextEdit*>()) {
+        if(text->documentTitle() == "Slot2 Ammo") texts[31] = text;
+        else if(text->documentTitle() == "Slot3 Ammo") texts[32] = text;
+        else if(text->documentTitle() == "Slot4 Ammo") texts[33] = text;
+        else if(text->documentTitle() == "Slot5 Ammo") texts[34] = text;
+        else if(text->documentTitle() == "Slot6 Ammo") texts[35] = text;
+        else if(text->documentTitle() == "Slot7 Ammo") texts[36] = text;
+        else if(text->documentTitle() == "Slot8 Ammo") texts[37] = text;
+        else if(text->documentTitle() == "Slot9 Ammo") texts[38] = text;
+    }
 }
 
 void MainForm::OpenSave() {
@@ -113,7 +205,7 @@ void MainForm::OpenSave() {
 
     try {
         this->save = new GTASASave(path);
-        if(!this->save->CheckChecksum()) throw std::runtime_error("Invalid save checksum.");
+        if(!this->save->ValidChecksum()) throw std::runtime_error("Invalid save checksum.");
     }
     catch(const std::runtime_error& e) {
         QMessageBox msgBox;
@@ -123,13 +215,14 @@ void MainForm::OpenSave() {
     }
 
     if(this->save == nullptr) return;
+    this->InitCombos();
     this->PrintSaveInfos();
     this->ui->Update->setEnabled(true);
 }
 
 bool MainForm::Update(const std::string& name, const std::string& val) {
     try {
-         this->save->Update(name, val);
+         this->save->UpdateValue(name, val);
     }
     catch(...) {
         return false;
@@ -141,9 +234,10 @@ bool MainForm::Update(const std::string& name, const std::string& val) {
 void MainForm::UpdateSave() {
     if(this->save == nullptr) return;
 
-    QCheckBox* checks[14];
-    QPlainTextEdit* texts[31];
-    this->GetWidgets(checks, texts);
+    QCheckBox* checks[16];
+    QPlainTextEdit* texts[39];
+    QComboBox* combos[13];
+    this->GetWidgets(checks, texts, combos);
 
     for(QCheckBox* check : checks) {
         const std::string name = check->text().toStdString();
@@ -154,25 +248,32 @@ void MainForm::UpdateSave() {
     std::string msg = "Save updated.";
     bool ok = false;
 
-    for(std::size_t i = 0; i < 30; i++) {
+    for(std::size_t i = 1; i < 31; i++) {
         const QPlainTextEdit* text = texts[i];
         const std::string name = text->documentTitle().toStdString();
         const std::string val = text->toPlainText().toStdString();
 
         ok = this->Update(name, val);    
         if(!ok) {
-            msg = "Error occurred in updating " + name + ".";
+            msg = "Error occurred in updating '" + name + "'.";
             break;
         }
     }
 
-    if(ok) {
-        this->save->UpdateChecksum();
-        this->save->Write();
-    }
+    std::array<std::pair<std::string, std::uint32_t>, this->save->weaponSlots> weaps;
+
+    int i = 0;
+    for(QComboBox* combo : combos)
+        weaps[i++].first = combo->currentText().toStdString();
+
+    for(std::size_t i = 31; i < 39; i++)
+        weaps[i - 31 + 2].second = std::stoul(texts[i]->toPlainText().toStdString());
+
+    this->save->UpdateWeapons(weaps);
+    if(ok) this->save->Write();
 
     QMessageBox msgBox;
     msgBox.setIcon(ok ? QMessageBox::Information : QMessageBox::Critical);
-    msgBox.setText(QString::fromUtf8(msg.data()));
+    msgBox.setText(QString::fromStdString(msg));
     msgBox.exec();
 }

@@ -10,9 +10,8 @@ GTASASave::GTASASave(const std::string& path) {
     const std::size_t s = in.tellg();
     in.seekg(0, std::ios::beg);
 
-    if(s == size) {
-        this->bytes = std::unique_ptr<std::uint8_t[]>(new std::uint8_t[size]);
-        in.read((char*) this->bytes.get(), size);
+    if(s == saveSize) {
+        in.read((char*) this->bytes.data(), saveSize);
         in.close();
     }
     else {
@@ -23,14 +22,14 @@ GTASASave::GTASASave(const std::string& path) {
     this->ReadBlockOffsets();
 }
 
-void GTASASave::Update(const std::string& name, const std::string& val) {
-    if(this->infos.count(name) == 0) return;
+void GTASASave::UpdateValue(const std::string& name, const std::string& val) {
+    if(this->values.count(name) == 0) return;
 
-    const auto info = this->infos[name];
-    const Type type = std::get<0>(info);
-    const std::size_t offset = this->blockOffsets[std::get<1>(info)] + std::get<2>(info);
+    const auto value = this->values[name];
+    const Type type = std::get<0>(value);
+    const std::size_t offset = this->blockOffsets[std::get<1>(value)] + std::get<2>(value);
 
-    std::uint8_t* buffer = this->bytes.get();
+    std::uint8_t* buffer = this->bytes.data();
     std::uint8_t bytes[4];
     std::size_t n = 0;
 
@@ -52,60 +51,74 @@ void GTASASave::Update(const std::string& name, const std::string& val) {
 
         case decimal: {
                 n = 4;
-                const float floatVal = std::stof(val);
+                const float decVal = std::stof(val);
                 std::uint32_t intVal = 0;
-                std::memcpy(&intVal, &floatVal, 4);
+                std::memcpy(&intVal, &decVal, 4);
                 GetLEBytes(bytes, intVal);
             }
             break;
     }
 
-    for(std::size_t i = 0; i < n && i < this->size; i++)
-        buffer[offset + i] = bytes[i];
+    std::memcpy(buffer + offset, bytes, n);
 }
 
-void GTASASave::UpdateChecksum() {
-    if(this->size < 4) return;
-
-    std::uint8_t* buffer = this->bytes.get();
-    std::uint32_t checksum = 0;
-
-    for(std::size_t i = 0; i < this->size - 4; i++)
-        checksum += buffer[i];
-
+void GTASASave::UpdateWeapons(std::array<std::pair<std::string, std::uint32_t>, weaponSlots>& weaps) {
+    std::uint8_t* buffer = this->bytes.data();
+    const std::size_t offset = this->blockOffsets[2] + 0x28;
     std::uint8_t bytes[4];
-    GetLEBytes(bytes, checksum);
 
-    for(std::size_t i = 0; i < 4; i++)
-        buffer[this->size - 4 + i] = bytes[i];
+    for(std::size_t i = 0; i < weaponSlots; i++) {
+        auto weapon = weaps[i];
+        std::uint32_t weaponId = 0;
+        std::uint32_t ammo = (i < 2 || i > 9) ? 1 : weapon.second;
+
+        for(const auto& entry : weapons[i])
+            if(entry.first == weapon.first) weaponId = entry.second;
+
+        GetLEBytes(bytes, weaponId);
+        std::memcpy(buffer + offset + i * weaponSize, bytes, 4);
+
+        GetLEBytes(bytes, ammo);
+        std::memcpy(buffer + offset + i * weaponSize + 0x0C, bytes, 4);
+    }
 }
 
-bool GTASASave::CheckChecksum() {
-    if(this->size < 4) return false;
-
-    const std::uint8_t* buffer = this->bytes.get();
+bool GTASASave::ValidChecksum() {
+    const std::uint8_t* buffer = this->bytes.data();
     std::uint32_t checksum = 0;
 
-    for(std::size_t i = 0; i < this->size - 4; i++)
+    for(std::size_t i = 0; i < checksumOffset; i++)
         checksum += buffer[i];
 
-    const std::uint32_t calcChecksum = GetInt(buffer, this->size - 4);
+    const std::uint32_t calcChecksum = GetInt(this->bytes.data(), checksumOffset);
     return checksum == calcChecksum;
 }
 
 void GTASASave::Write() {
+    std::uint8_t* buffer = this->bytes.data();
+    std::uint32_t checksum = 0;
+
+    for(std::size_t i = 0; i < checksumOffset; i++)
+        checksum += buffer[i];
+
+    std::uint8_t bytes[4];
+    GetLEBytes(bytes, checksum);
+    std::memcpy(buffer + checksumOffset, bytes, 4);
+
     std::ofstream out(this->path, std::ios::out | std::ios::binary);
-    out.write((char*) this->bytes.get(), this->size);
+    out.write((char*) this->bytes.data(), this->saveSize);
     out.close();
 }
 
-void GTASASave::GetInfos(std::string& path, std::map<std::string, bool>& bools, std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints, std::map<std::string, float>& floats) {
+void GTASASave::GetInfos(std::string& path, std::map<std::string, bool>& bools,
+                         std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints,
+                         std::map<std::string, float>& decs, std::array<std::pair<std::string, std::uint32_t>, weaponSlots>& weaps) {
     path = this->path;
-    const std::uint8_t* buffer = this->bytes.get();
+    const std::uint8_t* buffer = this->bytes.data();
 
-    for(const auto& info : this->infos) {
-        const std::string name = info.first;
-        const auto val = info.second;
+    for(const auto& value : this->values) {
+        const std::string name = value.first;
+        const auto val = value.second;
         const Type type = std::get<0>(val);
         const std::size_t offset = this->blockOffsets[std::get<1>(val)] + std::get<2>(val);
 
@@ -124,12 +137,25 @@ void GTASASave::GetInfos(std::string& path, std::map<std::string, bool>& bools, 
 
             case decimal: {
                     const std::uint32_t intVal = GetInt(buffer, offset);
-                    float floatVal = 0;
-                    std::memcpy(&floatVal, &intVal, 4);
-                    floats.insert({name, floatVal});
+                    float decVal = 0;
+                    std::memcpy(&decVal, &intVal, 4);
+                    decs.insert({name, decVal});
                 }
                 break;
         }
+    }
+
+    const std::size_t offset = this->blockOffsets[2] + 0x28;
+
+    for(std::size_t i = 0; i < weaponSlots; i++) {
+        const std::uint32_t weaponId = GetInt(buffer, offset + i * weaponSize);
+        std::string weapon;
+
+        for(const auto& entry : weapons[i])
+            if(entry.second == weaponId) weapon = entry.first;
+
+        const std::uint32_t ammo = GetInt(buffer, offset + i * weaponSize + 0x0C);
+        weaps[i] = std::make_pair(weapon, ammo);
     }
 }
 
@@ -145,9 +171,9 @@ void GTASASave::ReadBlockOffsets() {
         pi[i] = m;
     }
 
-    const std::uint8_t* buffer = this->bytes.get();
+    const std::uint8_t* buffer = this->bytes.data();
 
-    for(std::size_t i = 0, m = 0; i < this->size; i++) {
+    for(std::size_t i = 0, m = 0; i < this->saveSize; i++) {
         while(m > 0 && patt[m] != buffer[i])
             m = pi[m - 1];
 
