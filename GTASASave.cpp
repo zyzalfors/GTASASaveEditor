@@ -90,7 +90,7 @@ bool GTASASave::ValidChecksum() {
     for(std::size_t i = 0; i < checksumOffset; i++)
         checksum += buffer[i];
 
-    const std::uint32_t calcChecksum = GetInt(this->bytes.data(), checksumOffset);
+    const std::uint32_t calcChecksum = GetInt(buffer, checksumOffset);
     return checksum == calcChecksum;
 }
 
@@ -106,7 +106,7 @@ void GTASASave::Write() {
     std::memcpy(buffer + checksumOffset, bytes, 4);
 
     std::ofstream out(this->path, std::ios::out | std::ios::binary);
-    out.write((char*) this->bytes.data(), this->saveSize);
+    out.write((char*) this->bytes.data(), saveSize);
     out.close();
 }
 
@@ -173,7 +173,7 @@ void GTASASave::ReadBlockOffsets() {
 
     const std::uint8_t* buffer = this->bytes.data();
 
-    for(std::size_t i = 0, m = 0; i < this->saveSize; i++) {
+    for(std::size_t i = 0, m = 0; i < saveSize; i++) {
         while(m > 0 && patt[m] != buffer[i])
             m = pi[m - 1];
 
