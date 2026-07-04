@@ -46,6 +46,7 @@ The tool supports manipulation of the following properties:
 - Bike skill - Integer
 - Cycling skill - Integer
 - Cheats used - Integer
+- Weapons and ammo
 
 For more technical details about save files, you can refer to the following resources:
 - https://gtamods.com/wiki/Saves_(GTA_SA)
