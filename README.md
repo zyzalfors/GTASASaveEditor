@@ -1,4 +1,4 @@
-# GTA SA Save Editor (PS2)
+# Grand Theft Auto San Andreas Save Editor (PS2)
 This GUI tool, built with QT6 and C++, allows users to read and edit save files for the PlayStation 2 game Grand Theft Auto: San Andreas. It also offers partial compatibility with saves of the PC version of the game.
 
 The tool supports manipulation of the following properties:
@@ -16,6 +16,8 @@ The tool supports manipulation of the following properties:
 - Fast reload - Boolean
 - Fireproof - Boolean
 - Drive-by - Boolean
+- Roadblocked SF - Boolean
+- Roadblocked LV - Boolean
 - Version - Integer
 - Health - Decimal, enter "inf" to set this value to infinite 
 - Max health - Decimal
