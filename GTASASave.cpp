@@ -63,12 +63,12 @@ void GTASASave::UpdateValue(const std::string& name, const std::string& val) {
     std::memcpy(buffer + offset, bytes, n);
 }
 
-void GTASASave::UpdateWeapons(const std::array<std::pair<std::string, std::uint32_t>, weaponSlots>& weaps) {
+void GTASASave::UpdateWeapons(const std::array<std::pair<std::string, std::uint32_t>, GTASASave::weaponSlots>& weaps) {
     std::uint8_t* buffer = this->bytes.data();
     const std::size_t offset = this->blockOffsets.at(2) + 0x28;
     std::uint8_t bytes[4];
 
-    for(std::size_t i = 0; i < weaponSlots; i++) {
+    for(std::size_t i = 0; i < GTASASave::weaponSlots; i++) {
         auto weapon = weaps[i];
         std::uint32_t weaponId = 0;
         std::uint32_t ammo = (i < 2 || i > 9) ? 1 : weapon.second;
@@ -115,7 +115,7 @@ void GTASASave::Write() {
 
 void GTASASave::GetInfos(std::string& path, std::map<std::string, bool>& bools,
                          std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints,
-                         std::map<std::string, float>& decs, std::array<std::pair<std::string, std::uint32_t>, weaponSlots>& weaps) {
+                         std::map<std::string, float>& decs, std::array<std::pair<std::string, std::uint32_t>, GTASASave::weaponSlots>& weaps) {
     path = this->path;
     const std::uint8_t* buffer = this->bytes.data();
 
@@ -150,7 +150,7 @@ void GTASASave::GetInfos(std::string& path, std::map<std::string, bool>& bools,
 
     const std::size_t offset = this->blockOffsets.at(2) + 0x28;
 
-    for(std::size_t i = 0; i < weaponSlots; i++) {
+    for(std::size_t i = 0; i < GTASASave::weaponSlots; i++) {
         const std::uint32_t weaponId = GetInt(buffer, offset + i * weaponSize);
         std::string weapon;
 
