@@ -178,7 +178,7 @@ void MainForm::OpenSave() {
             msgBox.exec();
         }
     }
-    catch(const std::runtime_error& e) {
+    catch(const std::exception& e) {
         ok = false;
         QMessageBox msgBox;
         msgBox.setIcon(QMessageBox::Critical);
