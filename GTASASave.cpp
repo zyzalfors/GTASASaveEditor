@@ -11,13 +11,13 @@ GTASASave::GTASASave(const std::string& path) {
     in.seekg(0, std::ios::end);
     const auto size = in.tellg();
 
-    if((std::size_t) size != saveSize)
+    if((std::size_t) size != GTASASave::saveSize)
         throw std::runtime_error("Invalid save size.");
 
     in.seekg(0, std::ios::beg);
-    in.read((char*) this->bytes.data(), saveSize);
+    in.read((char*) this->bytes.data(), GTASASave::saveSize);
 
-    if((std::size_t) in.gcount() != saveSize)
+    if((std::size_t) in.gcount() != GTASASave::saveSize)
         throw std::runtime_error("Unable to read save file.");
 
     this->ReadBlockOffsets();
@@ -77,10 +77,10 @@ void GTASASave::UpdateWeapons(const std::array<std::pair<std::string, std::uint3
             if(entry.first == weapon.first) weaponId = entry.second;
 
         GetLEBytes(bytes, weaponId);
-        std::memcpy(buffer + offset + i * weaponSize, bytes, 4);
+        std::memcpy(buffer + offset + i * GTASASave::weaponSize, bytes, 4);
 
         GetLEBytes(bytes, ammo);
-        std::memcpy(buffer + offset + i * weaponSize + 0x0C, bytes, 4);
+        std::memcpy(buffer + offset + i * GTASASave::weaponSize + 0x0C, bytes, 4);
     }
 }
 
@@ -88,10 +88,10 @@ bool GTASASave::ValidChecksum() {
     const std::uint8_t* buffer = this->bytes.data();
     std::uint32_t checksum = 0;
 
-    for(std::size_t i = 0; i < checksumOffset; i++)
+    for(std::size_t i = 0; i < GTASASave::checksumOffset; i++)
         checksum += buffer[i];
 
-    const std::uint32_t calcChecksum = GetInt(buffer, checksumOffset);
+    const std::uint32_t calcChecksum = GetInt(buffer, GTASASave::checksumOffset);
     return checksum == calcChecksum;
 }
 
@@ -99,17 +99,17 @@ void GTASASave::Write() {
     std::uint8_t* buffer = this->bytes.data();
     std::uint32_t checksum = 0;
 
-    for(std::size_t i = 0; i < checksumOffset; i++)
+    for(std::size_t i = 0; i < GTASASave::checksumOffset; i++)
         checksum += buffer[i];
 
     std::uint8_t bytes[4];
     GetLEBytes(bytes, checksum);
-    std::memcpy(buffer + checksumOffset, bytes, 4);
+    std::memcpy(buffer + GTASASave::checksumOffset, bytes, 4);
 
     std::ofstream out(this->path, std::ios::out | std::ios::binary);
     if(!out) throw std::runtime_error("Unable to open save file.");
 
-    out.write((char*) this->bytes.data(), saveSize);
+    out.write((char*) this->bytes.data(), GTASASave::saveSize);
     if(!out) throw std::runtime_error("Unable to write save file.");
 }
 
@@ -151,13 +151,13 @@ void GTASASave::GetInfos(std::string& path, std::map<std::string, bool>& bools,
     const std::size_t offset = this->blockOffsets.at(2) + 0x28;
 
     for(std::size_t i = 0; i < GTASASave::weaponSlots; i++) {
-        const std::uint32_t weaponId = GetInt(buffer, offset + i * weaponSize);
+        const std::uint32_t weaponId = GetInt(buffer, offset + i * GTASASave::weaponSize);
         std::string weapon;
 
         for(const auto& entry : weapons[i])
             if(entry.second == weaponId) weapon = entry.first;
 
-        const std::uint32_t ammo = GetInt(buffer, offset + i * weaponSize + 0x0C);
+        const std::uint32_t ammo = GetInt(buffer, offset + i * GTASASave::weaponSize + 0x0C);
         weaps[i] = std::make_pair(weapon, ammo);
     }
 }
@@ -176,7 +176,7 @@ void GTASASave::ReadBlockOffsets() {
 
     const std::uint8_t* buffer = this->bytes.data();
 
-    for(std::size_t i = 0, m = 0; i < saveSize; i++) {
+    for(std::size_t i = 0, m = 0; i < GTASASave::saveSize; i++) {
         while(m > 0 && patt[m] != buffer[i])
             m = pi[m - 1];
 
