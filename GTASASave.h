@@ -11,7 +11,7 @@ class GTASASave {
     public: static const std::size_t weaponSlots = 13;
     private: static const std::size_t saveSize = 202752;
     private: static const std::size_t checksumOffset = 202748;
-    private: std::array<std::uint8_t, saveSize> bytes;
+    private: std::array<std::uint8_t, GTASASave::saveSize> bytes;
     private: std::vector<std::size_t> blockOffsets;
     private: std::string path;
 
@@ -65,7 +65,7 @@ class GTASASave {
             {"Cheats used", std::make_tuple(integer, 16, 0x18C)}
     };
 
-    public: const std::array<std::map<std::string, std::uint32_t>, weaponSlots> weapons = {{
+    public: const std::array<std::map<std::string, std::uint32_t>, GTASASave::weaponSlots> weapons = {{
             {{"None", 0x00}, {"Brass knuckles", 0x01}},
             {{"None", 0x00}, {"Golf club", 0x02}, {"Nightstick", 0x03}, {"Knife", 0x04}, {"Baseball bat", 0x05}, {"Shovel", 0x06}, {"Pool cue", 0x07}, {"Katana", 0x08}, {"Chainsaw", 0x09}},
             {{"None", 0x00}, {"Pistol", 0x16}, {"Silenced pistol", 0x17}, {"Desert Eagle", 0x18}},
@@ -84,12 +84,12 @@ class GTASASave {
 
     public: GTASASave(const std::string& path);
     public: void UpdateValue(const std::string& name, const std::string& val);
-    public: void UpdateWeapons(const std::array<std::pair<std::string, std::uint32_t>, weaponSlots>& weaps);
+    public: void UpdateWeapons(const std::array<std::pair<std::string, std::uint32_t>, GTASASave::weaponSlots>& weaps);
     public: bool ValidChecksum();
     public: void Write();
     public: void GetInfos(std::string& path, std::map<std::string, bool>& bools,
                           std::map<std::string, std::uint8_t>& bytes, std::map<std::string, std::uint32_t>& ints,
-                          std::map<std::string, float>& decs, std::array<std::pair<std::string, std::uint32_t>, weaponSlots>& weaps);
+                          std::map<std::string, float>& decs, std::array<std::pair<std::string, std::uint32_t>, GTASASave::weaponSlots>& weaps);
 
     private: void ReadBlockOffsets();
     private: static void GetLEBytes(std::uint8_t buff[], const std::uint32_t& val);

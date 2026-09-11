@@ -3,29 +3,10 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-MainForm::MainForm(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainForm) {
+MainForm::MainForm(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainForm) {
     this->ui->setupUi(this);
     this->setFixedSize(this->size().width(), this->size().height());
     this->AddSignalSlots();
-}
-
-void MainForm::InitCombos() {
-    QWidget* tab = ui->tabs->widget(1);
-
-    for(QComboBox* combo : tab->findChildren<QComboBox*>()) {
-        const int i = combo->objectName().mid(5).toInt();
-        combo->clear();
-
-        for(const auto& entry : this->save->weapons[i])
-            combo->addItem(QString::fromStdString(entry.first));
-
-        combo->setEnabled(true);
-    }
-}
-
-MainForm::~MainForm() {
-    delete this->ui;
-    if(this->save != nullptr) delete this->save;
 }
 
 void MainForm::AddSignalSlots() {
@@ -33,14 +14,21 @@ void MainForm::AddSignalSlots() {
     connect(this->ui->Update, &QAction::triggered, this, &MainForm::UpdateSave);
 }
 
-void MainForm::PrintSaveInfos() {
+MainForm::~MainForm() {
+    delete this->ui;
+    if(this->save != nullptr) delete this->save;
+}
+
+void MainForm::PrintSaveInfos(const bool& clear) {
     std::string path;
     std::map<std::string, bool> bools;
     std::map<std::string, std::uint8_t> bytes;
     std::map<std::string, std::uint32_t> ints;
     std::map<std::string, float> decs;
-    std::array<std::pair<std::string, std::uint32_t>, this->save->weaponSlots> weaps;
-    this->save->GetInfos(path, bools, bytes, ints, decs, weaps);
+    std::array<std::pair<std::string, std::uint32_t>, GTASASave::weaponSlots> weaps;
+
+    if(!clear)
+        this->save->GetInfos(path, bools, bytes, ints, decs, weaps);
 
     QCheckBox* checks[16] = {};
     QPlainTextEdit* texts[39] = {};
@@ -48,40 +36,77 @@ void MainForm::PrintSaveInfos() {
     this->GetWidgets(checks, texts, combos);
 
     for(QCheckBox* check : checks) {
-        check->setEnabled(true);
-        check->setChecked(bools[check->text().toStdString()]);
+        if(clear) {
+            check->setChecked(false);
+            check->setEnabled(false);
+        }
+        else {
+            check->setChecked(bools[check->text().toStdString()]);
+            check->setEnabled(true);
+        }
     }
 
     const QString title = texts[0]->documentTitle();
-    texts[0]->setPlainText(QString::fromStdString(path));
+
+    if(clear) {
+        texts[0]->clear();
+        texts[0]->setEnabled(false);
+    }
+    else {
+        texts[0]->setPlainText(QString::fromStdString(path));
+        texts[0]->setEnabled(true);
+    }
+
     texts[0]->setDocumentTitle(title);
 
     for(std::size_t i = 1; i < 31; i++) {
-        QPlainTextEdit* text = texts[i];
-        text->setEnabled(true);
+        const QString title = texts[i]->documentTitle();
 
-        const QString title = text->documentTitle();
-        const std::string name = title.toStdString();
+        if(clear) {
+            texts[i]->clear();
+            texts[i]->setEnabled(false);
+        }
+        else {
+            const std::string name = title.toStdString();
 
-        if(bytes.count(name) > 0) text->setPlainText(QString::number(bytes[name]));
-        else if(ints.count(name) > 0) text->setPlainText(QString::number(ints[name]));
-        else if(decs.count(name) > 0) text->setPlainText(QString::number(decs[name]));
+            if(bytes.count(name) > 0) texts[i]->setPlainText(QString::number(bytes[name]));
+            else if(ints.count(name) > 0) texts[i]->setPlainText(QString::number(ints[name]));
+            else if(decs.count(name) > 0) texts[i]->setPlainText(QString::number(decs[name]));
 
-        text->setDocumentTitle(title);
+            texts[i]->setEnabled(true);
+        }
+
+        texts[i]->setDocumentTitle(title);
     }
 
     for(QComboBox* combo : combos) {
-        const int i = combo->objectName().mid(5).toInt();
-        combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[i].first)));
+        combo->clear();
+
+        if(clear) combo->setEnabled(false);
+        else {
+            const int i = combo->objectName().mid(5).toInt();
+
+            for(const auto& entry : this->save->weapons[i])
+                combo->addItem(QString::fromStdString(entry.first));
+
+            combo->setCurrentIndex(combo->findText(QString::fromStdString(weaps[i].first)));
+            combo->setEnabled(true);
+        }
     }
 
     for(std::size_t i = 31; i < 39; i++) {
-        QPlainTextEdit* text = texts[i];
-        text->setEnabled(true);
+        const QString title = texts[i]->documentTitle();
 
-        const QString title = text->documentTitle();
-        text->setPlainText(QString::number(weaps[i - 31 + 2].second));
-        text->setDocumentTitle(title);
+        if(clear) {
+            texts[i]->clear();
+            texts[i]->setEnabled(false);
+        }
+        else {
+            texts[i]->setPlainText(QString::number(weaps[i - 31 + 2].second));
+            texts[i]->setEnabled(true);
+        }
+
+        texts[i]->setDocumentTitle(title);
     }
 }
 
@@ -160,6 +185,13 @@ void MainForm::GetWidgets(QCheckBox* checks[], QPlainTextEdit* texts[], QComboBo
     }
 }
 
+void MainForm::Clear() {
+    if(this->save != nullptr) delete this->save;
+    this->save = nullptr;
+    this->PrintSaveInfos(true);
+    this->ui->Update->setEnabled(false);
+}
+
 void MainForm::OpenSave() {
     try {
         QString p = QFileDialog::getOpenFileName(this, QObject::tr("Open Save"), QString(), QObject::tr("GTASA Save (*.b);;All Files (*)"));
@@ -168,7 +200,6 @@ void MainForm::OpenSave() {
 
         if(this->save != nullptr) delete this->save;
         this->save = nullptr;
-
         this->save = new GTASASave(path);
 
         if(!this->save->ValidChecksum()) {
@@ -178,8 +209,7 @@ void MainForm::OpenSave() {
             msgBox.exec();
         }
 
-        this->InitCombos();
-        this->PrintSaveInfos();
+        this->PrintSaveInfos(false);
         this->ui->Update->setEnabled(true);
     }
     catch(const std::exception& e) {
@@ -187,6 +217,7 @@ void MainForm::OpenSave() {
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.setText(e.what());
         msgBox.exec();
+        this->Clear();
     }
 }
 
@@ -215,7 +246,7 @@ void MainForm::UpdateSave() {
             this->save->UpdateValue(name, val);
         }
 
-        std::array<std::pair<std::string, std::uint32_t>, this->save->weaponSlots> weaps = {};
+        std::array<std::pair<std::string, std::uint32_t>, GTASASave::weaponSlots> weaps = {};
 
         int i = 0;
         for(QComboBox* combo : combos)
