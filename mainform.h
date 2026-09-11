@@ -16,6 +16,7 @@ class MainForm : public QMainWindow {
     Q_OBJECT
     public: MainForm(QWidget* parent = nullptr);
     public: ~MainForm();
+    private: void InitCombos();
     private slots: void OpenSave();
     private slots: void UpdateSave();
     private: Ui::MainForm* ui;
