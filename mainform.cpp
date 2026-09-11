@@ -161,14 +161,14 @@ void MainForm::GetWidgets(QCheckBox* checks[], QPlainTextEdit* texts[], QComboBo
 }
 
 void MainForm::OpenSave() {
-    QString p = QFileDialog::getOpenFileName(this, QObject::tr("Open Save"), QString(), QObject::tr("GTASA Save (*.b);;All Files (*)"));
-    if(p.isEmpty()) return;
-    std::string path = p.toStdString();
-
-    bool ok = true;
-    if(this->save != nullptr) delete this->save;
-
     try {
+        QString p = QFileDialog::getOpenFileName(this, QObject::tr("Open Save"), QString(), QObject::tr("GTASA Save (*.b);;All Files (*)"));
+        if(p.isEmpty()) return;
+        std::string path = p.toStdString();
+
+        if(this->save != nullptr) delete this->save;
+        this->save = nullptr;
+
         this->save = new GTASASave(path);
 
         if(!this->save->ValidChecksum()) {
@@ -177,20 +177,17 @@ void MainForm::OpenSave() {
             msgBox.setText("Invalid save checksum. Update save to fix it");
             msgBox.exec();
         }
+
+        this->InitCombos();
+        this->PrintSaveInfos();
+        this->ui->Update->setEnabled(true);
     }
     catch(const std::exception& e) {
-        ok = false;
         QMessageBox msgBox;
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.setText(e.what());
         msgBox.exec();
     }
-
-    if(!ok) return;
-
-    this->InitCombos();
-    this->PrintSaveInfos();
-    this->ui->Update->setEnabled(true);
 }
 
 void MainForm::UpdateSave() {
