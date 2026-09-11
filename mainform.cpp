@@ -48,14 +48,8 @@ void MainForm::PrintSaveInfos(const bool& clear) {
 
     const QString title = texts[0]->documentTitle();
 
-    if(clear) {
-        texts[0]->clear();
-        texts[0]->setEnabled(false);
-    }
-    else {
-        texts[0]->setPlainText(QString::fromStdString(path));
-        texts[0]->setEnabled(true);
-    }
+    if(clear) texts[0]->clear();
+    else texts[0]->setPlainText(QString::fromStdString(path));
 
     texts[0]->setDocumentTitle(title);
 

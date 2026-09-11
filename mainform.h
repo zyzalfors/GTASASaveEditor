@@ -16,12 +16,12 @@ class MainForm : public QMainWindow {
     Q_OBJECT
     public: MainForm(QWidget* parent = nullptr);
     public: ~MainForm();
-    private: void InitCombos();
     private slots: void OpenSave();
     private slots: void UpdateSave();
     private: Ui::MainForm* ui;
+    private: void Clear();
     private: void AddSignalSlots();
-    private: void PrintSaveInfos();
+    private: void PrintSaveInfos(const bool& clear);
     private: void GetWidgets(QCheckBox* checks[], QPlainTextEdit* texts[], QComboBox* combos[]);
     private: GTASASave* save = nullptr;
 };
