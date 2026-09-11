@@ -13,7 +13,7 @@ void MainForm::InitCombos() {
     QWidget* tab = ui->tabs->widget(1);
 
     for(QComboBox* combo : tab->findChildren<QComboBox*>()) {
-        const int i = combo->objectName().mid(5).toInt();        
+        const int i = combo->objectName().mid(5).toInt();
         combo->clear();
 
         for(const auto& entry : this->save->weapons[i])
@@ -165,20 +165,29 @@ void MainForm::OpenSave() {
     if(p.isEmpty()) return;
     std::string path = p.toStdString();
 
+    bool ok = true;
     if(this->save != nullptr) delete this->save;
 
     try {
         this->save = new GTASASave(path);
-        if(!this->save->ValidChecksum()) throw std::runtime_error("Invalid save checksum.");
+
+        if(!this->save->ValidChecksum()) {
+            QMessageBox msgBox;
+            msgBox.setIcon(QMessageBox::Critical);
+            msgBox.setText("Invalid save checksum. Update save to fix it");
+            msgBox.exec();
+        }
     }
     catch(const std::runtime_error& e) {
+        ok = false;
         QMessageBox msgBox;
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.setText(e.what());
         msgBox.exec();
     }
 
-    if(this->save == nullptr) return;
+    if(!ok) return;
+
     this->InitCombos();
     this->PrintSaveInfos();
     this->ui->Update->setEnabled(true);
@@ -224,7 +233,7 @@ void MainForm::UpdateSave() {
     catch(const std::exception& e) {
         ok = false;
         msg = e.what();
-    } 
+    }
 
     QMessageBox msgBox;
     msgBox.setIcon(ok ? QMessageBox::Information : QMessageBox::Critical);

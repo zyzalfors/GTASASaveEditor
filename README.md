@@ -19,9 +19,9 @@ The tool supports manipulation of the following properties:
 - Roadblocked SF - Boolean
 - Roadblocked LV - Boolean
 - Version - Integer
-- Health - Decimal, enter "inf" to set this value to infinite 
+- Health - Decimal, enter "inf" to set this value to infinite
 - Max health - Decimal
-- Armor - Decimal, enter "inf" to set this value to infinite 
+- Armor - Decimal, enter "inf" to set this value to infinite
 - Max armor - Byte
 - Money - Integer
 - Money on screen - Integer
